@@ -92,3 +92,4 @@ test/tools/Modules/SelfSignedCertificate/
 
 # BenchmarkDotNet artifacts
 test/perf/BenchmarkDotNet.Artifacts/
+.fake
