@@ -90,10 +90,10 @@ try {
     }
 
 
-    # Delete the resource group 
+    # Delete the resource group
     Write-Host "Deleting the resource group called `"$($AzureResourceGroupName)`"..." -ForegroundColor Magenta
     Remove-AzResourceGroup -Name $getAzResourceGroup.ResourceGroupName -Force -Verbose
-    Write-Host "Resource group called `"$($AzureResourceGroupName)`" deleted" -ForegroundColor Green
+    Write-Host "Resource group called `"$($AzureResourceGroupName)`" is deleted" -ForegroundColor Green
 }
 catch {
     $errorMessage = $_.Exception.Message
