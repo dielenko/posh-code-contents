@@ -108,7 +108,7 @@ Test-AzLogin
 
 try {
     # Check the Microsoft.DBforPostgreSQL resource provider
-    Write-Host "Checking the Microsoft.DBforPostgreSQL resource provider existence..." -ForegroundColor Magenta
+    Write-Host "Checking the `"Microsoft.DBforPostgreSQL`" resource provider existence..." -ForegroundColor Magenta
     $checkPostgreSQLProviderStatus = Get-AzResourceProvider | Where-Object { $_.ProviderNamespace -eq "Microsoft.DBforPostgreSQL" }
 
     if ($checkPostgreSQLProviderStatus.RegistrationState -eq 'Registered') {
