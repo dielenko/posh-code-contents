@@ -10,13 +10,13 @@ param
     [Parameter(Mandatory = $true)]
     [string]$PostgreSqlDBName,
 
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [ValidateSet('B_Gen5_2', 'GP_Gen5_32', 'MO_Gen5_2')]
-    [String]$PostgreSqlSku,
+    [String]$PostgreSqlSku = 'B_Gen5_2',
 
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [ValidateSet('Enabled', 'Disabled')]
-    [String]$PostgreSqlGeoRedundantBackup
+    [String]$PostgreSqlGeoRedundantBackup = 'Disabled'
 
 )
 #******************************************************************************
