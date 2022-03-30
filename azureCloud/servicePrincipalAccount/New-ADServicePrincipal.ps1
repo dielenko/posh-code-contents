@@ -63,23 +63,6 @@ function Test-AzLogin {
         Login-AzAccount
     }
 }
-
-function Set-RandomPassword {
-    $length = 14
-    $symbols = '!@#$%^&*'.ToCharArray()
-    $characterList = 'a'..'z' + 'A'..'Z' + '0'..'9' + $symbols
-
-    do {
-        $password = -join (0..$length | ForEach-Object { $characterList | Get-Random })
-        [int]$hasLowerChar = $password -cmatch '[a-z]'
-        [int]$hasUpperChar = $password -cmatch '[A-Z]'
-        [int]$hasDigit = $password -match '[0-9]'
-        [int]$hasSymbol = $password.IndexOfAny($symbols) -ne -1
-
-    }
-    until (($hasLowerChar + $hasUpperChar + $hasDigit + $hasSymbol) -ge 1)
-    $password | ConvertTo-SecureString -AsPlainText
-}
 #******************************************************************************
 # Script body
 # Execution begins here
@@ -112,7 +95,6 @@ try {
     $getAzADServicePrincipal = Get-AzADServicePrincipal -DisplayName "$AzureADServicePrincipalName"
     $getAzADApplication = Get-AzADApplication -DisplayName "$AzureADServicePrincipalName"
 
-    #TODO: Separate the if output per each item
     if ($getAzADServicePrincipal -or $getAzADApplication) {
         Write-Host "The Azure Service Principal account exists. The script execution will be stopped" -ForegroundColor Red
         Break
@@ -120,38 +102,22 @@ try {
     else {
         Write-Host "The Azure Service Principal account does not exists" -ForegroundColor Green
         Write-Host "Creating an Azure Service Principal account with the following display name `"$($AzureADServicePrincipalName)`"..." -ForegroundColor Magenta
-        $adServicePrincipalPassword = Set-RandomPassword
-        $adServicePrincipalcredentials = New-Object Microsoft.Azure.Commands.ActiveDirectory.PSADPasswordCredential `
-            -Property @{ StartDate = Get-Date; EndDate = Get-Date -Year 2024; Password = $adServicePrincipalPassword };
         
-        $adServicePrincipalSplat = @{
-            DisplayName        = "$AzureADServicePrincipalName"
-            PasswordCredential = $adServicePrincipalcredentials
-        }
-        $adServicePrincipalAccount = New-AzAdServicePrincipal @adServicePrincipalSplat
+        $newADServicePrincipal = New-AzADServicePrincipal `
+            -DisplayName $AzureADServicePrincipalName `
+            -StartDate $(Get-Date) `
+            -EndDate $(Get-Date -Year 2023)
         Write-Host "The Azure Service Principal account called `"$($AzureADServicePrincipalName)`" created" -ForegroundColor Green
-    
-        # Assign a Role to the Azure Service Principal account
-        Write-Host "Assigning the RBAC role `"Contributor`" to the Service Principal called `"$($AzureADServicePrincipalName)`"..." -ForegroundColor Magenta
-        $currentAzSubscriptionId = (Get-AzContext).Subscription.id
-    
-        $roleAssignmentSplat = @{
-            ObjectId           = $adServicePrincipalAccount.id
-            RoleDefinitionName = 'Contributor'
-            Scope              = "/subscriptions/$currentAzSubscriptionId"
-        }
-    
-        New-AzRoleAssignment @roleAssignmentSplat
-    
+        
         # Get the connection information regarding the created Azure Service Principal account
         Write-Host "Getting the connection information regarding the created Azure Service Principal account called `"$($AzureADServicePrincipalName)`"..." -ForegroundColor Magenta
-        $servicePrincipalPassword = ConvertFrom-SecureString -SecureString $adServicePrincipalPassword -AsPlainText
+        # $servicePrincipalPassword = ConvertFrom-SecureString -SecureString $adServicePrincipalPassword -AsPlainText
         $azADServicePrincipalInfo = [ordered]@{
-            ServicePrincipalDisplayName   = $adServicePrincipalAccount.DisplayName
-            ServicePrincipalName          = $adServicePrincipalAccount.ServicePrincipalNames
-            ServicePrincipalApplicationId = $adServicePrincipalAccount.ApplicationId
-            ServicePrincipalId            = $adServicePrincipalAccount.Id
-            ServicePrincipalPassword      = $servicePrincipalPassword
+            ServicePrincipalDisplayName   = $newADServicePrincipal.DisplayName
+            ServicePrincipalName          = $newADServicePrincipal.ServicePrincipalName
+            ServicePrincipalApplicationId = $newADServicePrincipal.AppId
+            ServicePrincipalId            = $newADServicePrincipal.Id
+            ServicePrincipalPassword      = $newADServicePrincipal.PasswordCredentials.SecretText
         }
         Write-Host "Below are the connection details for the created Azure Service Principal account called `"$($AzureADServicePrincipalName)`"" -ForegroundColor Green
         $azADServicePrincipalInfo | Format-Table
